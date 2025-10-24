@@ -1,0 +1,33 @@
+services:
+  backend:
+    build: ./backend
+    container_name: jpeg-to-pdf-backend
+    ports:
+      - "3000:3000"
+    networks:
+      - jpeg-net
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - SUPABASE_URL=${SUPABASE_URL:-https://your-project.supabase.co}
+      - SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY:-your-anon-key}
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend
+    container_name: jpeg-to-pdf-frontend
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+    networks:
+      - jpeg-net
+    environment:
+      - VITE_API_URL=http://localhost:3000
+      - VITE_SUPABASE_URL=${SUPABASE_URL:-https://your-project.supabase.co}
+      - VITE_SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY:-your-anon-key}
+    restart: unless-stopped
+
+networks:
+  jpeg-net:
+    driver: bridge

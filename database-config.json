@@ -1,0 +1,96 @@
+{
+  "database": {
+    "name": "jpeg-to-pdf-converter",
+    "version": "1.0.0",
+    "description": "Supabase database configuration for JPEG to PDF Converter",
+    "tables": {
+      "conversions": {
+        "description": "Stores PDF conversion history",
+        "columns": {
+          "id": {
+            "type": "UUID",
+            "description": "Primary key",
+            "default": "gen_random_uuid()"
+          },
+          "filename": {
+            "type": "TEXT",
+            "description": "Name of the generated PDF file",
+            "required": true
+          },
+          "file_count": {
+            "type": "INTEGER",
+            "description": "Number of images converted",
+            "required": true
+          },
+          "compression_level": {
+            "type": "TEXT",
+            "description": "Compression level used",
+            "required": true,
+            "constraints": ["normal", "compressed", "ultra"]
+          },
+          "user_id": {
+            "type": "TEXT",
+            "description": "User identifier",
+            "default": "anonymous"
+          },
+          "created_at": {
+            "type": "TIMESTAMP WITH TIME ZONE",
+            "description": "When the conversion was performed",
+            "default": "NOW()"
+          }
+        },
+        "indexes": [
+          "idx_conversions_created_at",
+          "idx_conversions_user_id"
+        ],
+        "policies": [
+          "Allow anyone to insert conversions",
+          "Allow anyone to read conversions"
+        ]
+      }
+    },
+    "views": {
+      "conversion_stats": {
+        "description": "Aggregated statistics by date",
+        "columns": {
+          "date": "DATE",
+          "total_conversions": "INTEGER",
+          "total_files": "INTEGER",
+          "avg_files_per_conversion": "DECIMAL"
+        }
+      }
+    },
+    "security": {
+      "row_level_security": true,
+      "public_access": {
+        "read": true,
+        "insert": true,
+        "update": false,
+        "delete": false
+      }
+    },
+    "api_endpoints": {
+      "backend": {
+        "GET /conversions": "Get conversion history",
+        "POST /conversions": "Log a new conversion",
+        "GET /health": "Health check"
+      }
+    },
+    "environment_variables": {
+      "SUPABASE_URL": "https://your-project-id.supabase.co",
+      "SUPABASE_ANON_KEY": "your-anon-key-here",
+      "SUPABASE_SERVICE_ROLE_KEY": "your-service-role-key-here"
+    },
+    "scripts": {
+      "setup": "./setup-supabase.sh",
+      "backup": "./scripts/backup-database.sh",
+      "restore": "./scripts/restore-database.sh",
+      "stats": "./scripts/database-stats.sh"
+    },
+    "documentation": {
+      "main": "SUPABASE_SETUP.md",
+      "database": "DATABASE.md",
+      "schema": "supabase-schema.sql"
+    }
+  }
+}
