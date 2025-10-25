@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import "./App.css";
-import { createClient } from '@supabase/supabase-js';
 
 function App() {
   const [files, setFiles] = useState([]);
@@ -9,17 +8,9 @@ function App() {
   const [filename, setFilename] = useState("converted");
   const [darkMode, setDarkMode] = useState(false);
   const [dragActive, setDragActive] = useState(false);
-  const [conversions, setConversions] = useState([]);
-  const [user, setUser] = useState(null);
 
   // Get API URL from environment or use localhost for development
   const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
-
-  // Initialize Supabase client
-  const supabase = createClient(
-    import.meta.env.VITE_SUPABASE_URL || 'https://your-project.supabase.co',
-    import.meta.env.VITE_SUPABASE_ANON_KEY || 'your-anon-key'
-  );
 
   useEffect(() => {
     const savedDarkMode = localStorage.getItem("darkMode") === "true";
@@ -27,9 +18,6 @@ function App() {
     if (savedDarkMode) {
       document.body.classList.add("dark-mode");
     }
-
-    // Load conversion history
-    loadConversions();
   }, []);
 
   const toggleDarkMode = () => {
@@ -40,19 +28,6 @@ function App() {
       document.body.classList.add("dark-mode");
     } else {
       document.body.classList.remove("dark-mode");
-    }
-  };
-
-  const loadConversions = async () => {
-    try {
-      const response = await fetch(`${API_URL}/conversions`);
-      if (response.ok) {
-        const data = await response.json();
-        setConversions(data || []);
-      }
-    } catch (error) {
-      console.error("Failed to load conversions:", error);
-      // Don't show error to user, just log it
     }
   };
 
@@ -105,9 +80,6 @@ function App() {
       a.download = `${filename}.pdf`;
       a.click();
       URL.revokeObjectURL(url);
-      
-      // Reload conversions after successful conversion
-      loadConversions();
     } catch (error) {
       console.error("Conversion failed:", error);
       alert("Conversion failed. Please try again.");
@@ -237,22 +209,6 @@ function App() {
             </button>
           </div>
         </div>
-
-        {conversions.length > 0 && (
-          <div className="conversions-section">
-            <p className="features-title">Recent Conversions:</p>
-            <div className="conversions-list">
-              {conversions.slice(0, 5).map((conversion, idx) => (
-                <div key={idx} className="conversion-item">
-                  <span className="conversion-filename">{conversion.filename}</span>
-                  <span className="conversion-details">
-                    {conversion.file_count} files • {conversion.compression_level} • {new Date(conversion.created_at).toLocaleDateString()}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
 
       <footer className="footer">

@@ -7,41 +7,8 @@ import sharp from "sharp";
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Initialize Supabase client (optional)
-let supabase = null;
-let supabaseConnected = false;
-
-try {
-  const { createClient } = await import('@supabase/supabase-js');
-  if (process.env.SUPABASE_URL && process.env.SUPABASE_ANON_KEY && 
-      process.env.SUPABASE_URL !== 'https://your-project-id.supabase.co' &&
-      process.env.SUPABASE_URL !== 'https://your-project.supabase.co') {
-    supabase = createClient(
-      process.env.SUPABASE_URL,
-      process.env.SUPABASE_ANON_KEY
-    );
-    
-    // Test the connection
-    try {
-      await supabase.from('conversions').select('count').limit(1);
-      supabaseConnected = true;
-      console.log("✅ Supabase connected successfully");
-    } catch (error) {
-      console.log("⚠️  Supabase configured but not accessible - running without database");
-      supabaseConnected = false;
-    }
-  } else {
-    console.log("⚠️  Supabase not configured - running without database");
-  }
-} catch (error) {
-  console.log("⚠️  Supabase not available - running without database");
-}
-
 app.use(cors());
 app.use(express.json());
-
-// Serve static files (for frontend in development)
-app.use(express.static('public'));
 
 // Multer setup (memory storage only - no disk writes)
 const storage = multer.memoryStorage();
@@ -93,62 +60,12 @@ app.get("/", (req, res) => {
   res.json({
     message: "JPEG to PDF Converter API",
     version: "1.0.0",
+    architecture: "2-tier",
     endpoints: {
       "POST /convert": "Convert images to PDF",
-      "GET /health": "Health check",
-      "GET /conversions": "Get conversion history",
-      "POST /conversions": "Log conversion"
+      "GET /health": "Health check"
     }
   });
-});
-
-// Get conversion history
-app.get("/conversions", async (req, res) => {
-  try {
-    if (!supabaseConnected) {
-      return res.json([]);
-    }
-    
-    const { data, error } = await supabase
-      .from('conversions')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(50);
-
-    if (error) throw error;
-    res.json(data || []);
-  } catch (err) {
-    console.error("❌ Error fetching conversions:", err);
-    res.status(500).json({ error: "Failed to fetch conversions" });
-  }
-});
-
-// Log conversion to database
-app.post("/conversions", async (req, res) => {
-  try {
-    if (!supabaseConnected) {
-      return res.json({ message: "Database not available" });
-    }
-    
-    const { filename, file_count, compression_level, user_id } = req.body;
-    
-    const { data, error } = await supabase
-      .from('conversions')
-      .insert({
-        filename,
-        file_count,
-        compression_level,
-        user_id: user_id || 'anonymous',
-        created_at: new Date().toISOString()
-      })
-      .select();
-
-    if (error) throw error;
-    res.json(data[0]);
-  } catch (err) {
-    console.error("❌ Error logging conversion:", err);
-    res.status(500).json({ error: "Failed to log conversion" });
-  }
 });
 
 // Convert route - streams PDF directly to response (no file storage)
@@ -183,24 +100,6 @@ app.post("/convert", upload.array("images"), async (req, res) => {
     // Finalize PDF
     doc.end();
 
-    // Log conversion to database (async, don't wait)
-    if (supabaseConnected) {
-      try {
-        await supabase
-          .from('conversions')
-          .insert({
-            filename: sanitizedFilename,
-            file_count: req.files.length,
-            compression_level: compressionLevel,
-            user_id: req.headers['user-id'] || 'anonymous',
-            created_at: new Date().toISOString()
-          });
-      } catch (dbError) {
-        console.error("❌ Database logging error:", dbError);
-        // Don't fail the conversion if database logging fails
-      }
-    }
-
   } catch (err) {
     console.error("❌ Conversion error:", err);
     if (!res.headersSent) {
@@ -215,7 +114,7 @@ app.get("/health", (req, res) => {
     status: "ok", 
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
-    database: supabaseConnected ? "connected" : "not configured"
+    architecture: "2-tier"
   });
 });
 
@@ -235,4 +134,5 @@ app.use((error, req, res, next) => {
 app.listen(PORT, () => {
   console.log(`🚀 Backend running on port ${PORT}`);
   console.log(`📡 Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`🏗️  Architecture: 2-tier (no database)`);
 });

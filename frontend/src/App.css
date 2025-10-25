@@ -394,55 +394,6 @@ body.dark-mode .footer {
   color: #666;
 }
 
-.conversions-section {
-  border-top: 2px solid #d0c4a8;
-  padding-top: 25px;
-  margin-top: 25px;
-}
-
-body.dark-mode .conversions-section {
-  border-color: #3a3a3a;
-}
-
-.conversions-list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.conversion-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px 15px;
-  background: #fff;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-}
-
-body.dark-mode .conversion-item {
-  background: #2a2a2a;
-  border-color: #555;
-}
-
-.conversion-filename {
-  font-weight: 600;
-  color: #000;
-}
-
-body.dark-mode .conversion-filename {
-  color: #e0e0e0;
-}
-
-.conversion-details {
-  font-size: 12px;
-  color: #666;
-}
-
-body.dark-mode .conversion-details {
-  color: #999;
-}
-
 @media (max-width: 768px) {
   .input-section {
     flex-direction: column;
