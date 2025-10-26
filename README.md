@@ -1,6 +1,5 @@
 # JPEG to PDF Converter – Docker Compose Orchestration
 
-
 [![Node.js](https://img.shields.io/badge/Node.js-18.x-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
 [![React](https://img.shields.io/badge/React-19.2.0-61DAFB?logo=react&logoColor=black)](https://reactjs.org/)
 [![Docker](https://img.shields.io/badge/Docker-Containerized-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
@@ -8,6 +7,8 @@
 [![Express](https://img.shields.io/badge/Express-4.18.2-000000?logo=express&logoColor=white)](https://expressjs.com/)
 
 ---
+
+## From Manual Commands → To One-Command Orchestration
 
 I thought I had it figured out.
 
@@ -95,9 +96,9 @@ Two containers, one network, orchestrated by Docker Compose.
 
 ---
 
-## The Journey
+## The Journey – Step by Step
 
-### **Step 1: Understanding the Problem**
+### Step 1: Understanding the Problem
 
 I started by listing what I was doing manually every time:
 
@@ -113,7 +114,9 @@ remember all the port mappings
 
 This wasn't sustainable.
 
-### **Step 2: Project Setup**
+---
+
+### Step 2: Project Setup
 
 First, I organized the project structure:
 
@@ -138,7 +141,19 @@ project/
 └── docker-compose.yml  ← The orchestrator
 ```
 
-### **Step 3: Writing docker-compose.yml**
+I checked my project tree:
+
+```bash
+tree -L 2 -I 'node_modules|dist|.git' --dirsfirst
+```
+
+![Project Structure](https://raw.githubusercontent.com/jillravaliya/jpeg-to-pdf-docker-compose/main/screenshots/01-project-structure.png)
+
+Clean structure with both services and the compose file ready.
+
+---
+
+### Step 3: Writing docker-compose.yml
 
 This is where everything comes together.
 
@@ -162,7 +177,9 @@ docker-compose up
 
 **Backend started!** 
 
-### **Step 4: Adding Frontend Service** 
+---
+
+### Step 4: Adding Frontend Service
 
 Extended the compose file:
 
@@ -195,7 +212,9 @@ Key learning: **Services communicate using service names as hostnames.**
 
 So `http://backend:3000` works inside the Docker network.
 
-### **Step 5: Environment Configuration** 
+---
+
+### Step 5: Environment Configuration
 
 Added environment variables:
 
@@ -207,7 +226,9 @@ frontend:
 
 This tells the frontend where to find the backend.
 
-### **Step 6: Health Checks & Restart Policies** 
+---
+
+### Step 6: Health Checks & Restart Policies
 
 Added monitoring:
 
@@ -223,23 +244,116 @@ backend:
 
 Now Docker monitors services and auto-restarts on failure.
 
-### **Step 7: Final Testing** 
+---
+
+### Step 7: Starting Everything with One Command
+
+Time to test the complete setup.
 
 ```bash
 docker-compose up -d
+```
+
+![Docker Compose Up](https://raw.githubusercontent.com/jillravaliya/jpeg-to-pdf-docker-compose/main/screenshots/02-compose-up.png)
+
+Beautiful! Docker Compose automatically:
+- Created the network
+- Built both images
+- Started both containers
+- Connected them together
+
+All with **one command**.
+
+---
+
+### Step 8: Verifying Service Health
+
+Let me check if everything is running properly:
+
+```bash
 docker-compose ps
 ```
 
-Output:
+![Health Dashboard](https://raw.githubusercontent.com/jillravaliya/jpeg-to-pdf-docker-compose/main/screenshots/03-health-dashboard.png)
+
+Perfect! Both services show as **healthy** with proper port mappings.
+
+The health checks are working – Docker is actively monitoring both containers.
+
+---
+
+### Step 9: Checking the Logs
+
+To see what's happening inside the containers:
+
+```bash
+docker-compose logs --tail=20 --timestamps
 ```
-NAME           STATUS                    PORTS
-app-backend    Up (healthy)             0.0.0.0:3000->3000/tcp
-app-frontend   Up (healthy)             0.0.0.0:80->80/tcp
+
+![Service Logs](https://raw.githubusercontent.com/jillravaliya/jpeg-to-pdf-docker-compose/main/screenshots/04-service-logs.png)
+
+Clean startup logs showing:
+- Backend server started on port 3000
+- Frontend served by Nginx on port 80
+- No errors, everything healthy
+
+---
+
+### Step 10: Inspecting the Network
+
+I wanted to see how Docker Compose set up the networking:
+
+```bash
+docker network inspect jpeg-to-pdf-compose_app-network
 ```
+
+![Network Topology](https://raw.githubusercontent.com/jillravaliya/jpeg-to-pdf-docker-compose/main/screenshots/05-network-topology.png)
+
+Docker Compose automatically:
+- Created a bridge network named `jpeg-to-pdf-compose_app-network`
+- Connected both containers to it
+- Configured DNS so services can find each other by name
+
+This is the magic that makes `http://backend:3000` work from the frontend.
+
+---
+
+### Step 11: Testing the Application
 
 Opened browser → `http://localhost`
 
-**Everything worked perfectly.** 
+![Application Homepage](https://raw.githubusercontent.com/jillravaliya/jpeg-to-pdf-docker-compose/main/screenshots/07-app-homepage.png)
+
+The frontend loaded perfectly!
+
+Now let me test the actual conversion:
+
+![Application Working](https://raw.githubusercontent.com/jillravaliya/jpeg-to-pdf-docker-compose/main/screenshots/06-app-working.png)
+
+**It works!** 
+
+I uploaded images, the backend processed them, and the PDF downloaded instantly.
+
+Frontend talking to backend seamlessly through the Docker network.
+
+---
+
+### Step 12: Clean Shutdown
+
+When I'm done, stopping everything is just as simple:
+
+```bash
+docker-compose down
+```
+
+![Cleanup](https://raw.githubusercontent.com/jillravaliya/jpeg-to-pdf-docker-compose/main/screenshots/08-cleanup.png)
+
+Docker Compose cleanly:
+- Stopped both containers
+- Removed the containers
+- Removed the network
+
+Everything cleaned up perfectly. No leftover processes, no manual cleanup needed.
 
 ---
 
@@ -428,13 +542,14 @@ Changed it to: http://backend:3000
 
 That's when I understood:
 > Docker Compose creates an isolated network. Services find each other by name, not by localhost.
+
 This wasn't a bug. This was proper microservice architecture.
 
 ---
 
 ## Why This Matters
 
-For Me
+### For Me
 I learned:
 
 - How real systems are deployed
@@ -442,7 +557,7 @@ I learned:
 - How to write reproducible infrastructure
 - How to think in distributed systems
 
-For Anyone Using This
+### For Anyone Using This
 You get:
 
 - One-command setup
@@ -500,7 +615,7 @@ That's what I'm working towards.
 
 ## Connect With Me  
 
-I’m actively learning, building, and seeking opportunities in **network engineering** and **cloud infrastructure**.  
+I'm actively learning, building, and seeking opportunities in **network engineering** and **cloud infrastructure**.  
 
 - Email: **jillahir9999@gmail.com**  
 - LinkedIn: [linkedin.com/in/jill-ravaliya-684a98264](https://linkedin.com/in/jill-ravaliya-684a98264)  
@@ -514,8 +629,4 @@ I’m actively learning, building, and seeking opportunities in **network engine
 
 ---
 
-### ⭐ If this project helped you understand Docker, give it a star!
-
-
-
-
+### ⭐ If this project helped you understand Docker Compose, give it a star!
