@@ -1,0 +1,29 @@
+services:
+  backend:
+    build: ./backend
+    container_name: jpeg-to-pdf-backend
+    ports:
+      - "3000:3000"
+    networks:
+      - jpeg-net
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend
+    container_name: jpeg-to-pdf-frontend
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+    networks:
+      - jpeg-net
+    environment:
+      - VITE_API_URL=http://localhost:3000
+    restart: unless-stopped
+
+networks:
+  jpeg-net:
+    driver: bridge
